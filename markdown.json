@@ -1,0 +1,7 @@
+{
+  "build": "README.md",
+  "files": ["docs/index.md"],
+  "tableOfContents": {
+    "heading": "# gulptask\n\nEncapsulating Gulp tasks"
+  }
+}
