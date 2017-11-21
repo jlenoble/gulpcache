@@ -1,12 +1,19 @@
-import Muter, {captured} from 'muter';
-import {expect} from 'chai';
-import Gulptask from '../src/gulptask';
+import testGulpProcess from './test-gulp-process';
 
-describe('Testing Gulptask', function () {
-  const muter = Muter(console, 'log'); // eslint-disable-line new-cap
+describe('', function () {
+  it(``, testGulpProcess({
+    sources: ['src/**/*.js', 'test/**/*.js', 'gulp/**/*.js'],
+    gulpfile: 'test/gulpfiles/gulpfile1.js',
 
-  it(`Class Gulptask says 'Hello world!'`, captured(muter, function () {
-    new Gulptask();
-    expect(muter.getLogs()).to.equal('Hello world!\n');
+    messages: [
+      `Starting 'default'...`,
+      `Starting 'tdd:transpile:all'...`,
+      `Starting 'exec:transpile:all'...`,
+      `Finished 'exec:transpile:all' after`,
+      `Starting 'watch:transpile:all'...`,
+      `Finished 'watch:transpile:all' after`,
+      `Finished 'tdd:transpile:all' after`,
+      `Finished 'default' after`,
+    ],
   }));
 });
