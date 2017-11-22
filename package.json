@@ -36,6 +36,8 @@
     "chai": "*",
     "child-process-data": "^0.5.7",
     "del": "*",
+    "destglob": "^0.1.4",
+    "equal-file-contents": "^0.1.5",
     "eslint-config-google": "*",
     "gulp": "git://github.com/gulpjs/gulp.git#4.0",
     "gulp-babel": "*",

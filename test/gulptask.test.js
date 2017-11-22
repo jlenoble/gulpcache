@@ -1,20 +1,15 @@
-import testGulpProcess from './test-gulp-process';
+import testGulpProcess, {compareTranspiled} from './test-gulp-process';
 
-describe('', function () {
-  it(``, testGulpProcess({
+describe('Testing GulpTask', function () {
+  it(`Testing a transpile task`, testGulpProcess({
     sources: ['src/**/*.js', 'test/**/*.js', 'gulp/**/*.js'],
-    gulpfile: 'test/gulpfiles/gulpfile1.js',
+    gulpfile: 'test/gulpfiles/exec-transpile-all.js',
 
     messages: [
       `Starting 'default'...`,
-      `Starting 'tdd:transpile:all'...`,
       `Starting 'exec:transpile:all'...`,
-      [`Finished 'exec:transpile:all' after`, () => {
-        console.log('Should check dest dir');
-      }],
-      `Starting 'watch:transpile:all'...`,
-      `Finished 'watch:transpile:all' after`,
-      `Finished 'tdd:transpile:all' after`,
+      [`Finished 'exec:transpile:all' after`, compareTranspiled('src/**/*.js',
+        'build')],
       `Finished 'default' after`,
     ],
   }));

@@ -1,9 +1,12 @@
 import childProcessData, {makeSingleTest} from 'child-process-data';
+import destglob from 'destglob';
+import equalFileContents from 'equal-file-contents';
 import {spawn} from 'child_process';
 import path from 'path';
 import del from 'del';
 import gulp from 'gulp';
 import rename from 'gulp-rename';
+import babel from 'gulp-babel';
 
 let counter = 0;
 
@@ -102,8 +105,20 @@ const testMessage = (results, message) => {
 };
 
 function waitForMessage (results, message) {
-  return repeat(() => testMessage(results, message));
+  return repeat(() => testMessage(results, message)).catch(err => {
+    if (err.message.match(/Waiting too long for child process to finish/)) {
+      throw new Error(`Waiting too long for child process to finish:
+Message '${message}' was never intercepted`);
+    }
+    throw err;
+  });
 }
+
+const compareTranspiled = (_glob, _dest) => options => {
+  const dest = path.join(options.dest, _dest);
+  const glob = destglob(_glob, options.dest);
+  return equalFileContents(glob, dest, babel, options.dest);
+};
 
 export default function testGulpProcess (opts) {
   return function () {
@@ -159,7 +174,7 @@ export default function testGulpProcess (opts) {
           results.forgetUpTo(message.value, {included: true});
 
           if (testFn.value !== null) {
-            await testFn.value();
+            await testFn.value(options);
           }
 
           message = messages.next();
@@ -192,3 +207,5 @@ export default function testGulpProcess (opts) {
     return makeSingleTest(options)();
   };
 }
+
+export {compareTranspiled};

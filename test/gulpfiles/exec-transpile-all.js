@@ -10,4 +10,4 @@ new GulpTask({
   dest: 'build',
 });
 
-gulp.task('default', gulp.series('tdd:transpile:all'));
+gulp.task('default', gulp.series('exec:transpile:all'));
