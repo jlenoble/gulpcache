@@ -135,15 +135,35 @@ export default function testGulpProcess (opts) {
       },
 
       async checkResults (results) {
-        const length = this.messages.length;
-        let counter = 0;
-        let message = this.messages[0];
+        const genMessages = function* (messages) {
+          const array = messages.map(msg => {
+            return Array.isArray(msg) ? msg[0] : msg;
+          });
+          yield* array;
+        };
+        const genTestFunctions = function* (messages) {
+          const array = messages.map(msg => {
+            return Array.isArray(msg) ? msg[1] : null;
+          });
+          yield* array;
+        };
 
-        while (counter < length &&
-          await this.waitForMessage(results, message)) {
-          results.forgetUpTo(message, {included: true});
-          counter++;
-          message = this.messages[counter];
+        const messages = genMessages(this.messages);
+        const testFunctions = genTestFunctions(this.messages);
+
+        let message = messages.next();
+        let testFn = testFunctions.next();
+
+        while (!message.done &&
+          await this.waitForMessage(results, message.value)) {
+          results.forgetUpTo(message.value, {included: true});
+
+          if (testFn.value !== null) {
+            await testFn.value();
+          }
+
+          message = messages.next();
+          testFn = testFunctions.next();
         }
 
         return results;

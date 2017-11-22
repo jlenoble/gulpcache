@@ -9,7 +9,9 @@ describe('', function () {
       `Starting 'default'...`,
       `Starting 'tdd:transpile:all'...`,
       `Starting 'exec:transpile:all'...`,
-      `Finished 'exec:transpile:all' after`,
+      [`Finished 'exec:transpile:all' after`, () => {
+        console.log('Should check dest dir');
+      }],
       `Starting 'watch:transpile:all'...`,
       `Finished 'watch:transpile:all' after`,
       `Finished 'tdd:transpile:all' after`,
