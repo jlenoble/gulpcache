@@ -4,6 +4,7 @@ import equalFileContents from 'equal-file-contents';
 import {spawn} from 'child_process';
 import path from 'path';
 import del from 'del';
+import touch from 'touch';
 import gulp from 'gulp';
 import rename from 'gulp-rename';
 import babel from 'gulp-babel';
@@ -120,6 +121,11 @@ const compareTranspiled = (_glob, _dest) => options => {
   return equalFileContents(glob, dest, babel, options.dest);
 };
 
+const touchFile = _file => options => {
+  const [file] = destglob(_file, options.dest);
+  return touch(file);
+};
+
 export default function testGulpProcess (opts) {
   return function () {
     this.timeout(opts.timeout // eslint-disable-line no-invalid-this
@@ -208,4 +214,4 @@ export default function testGulpProcess (opts) {
   };
 }
 
-export {compareTranspiled};
+export {compareTranspiled, touchFile};
