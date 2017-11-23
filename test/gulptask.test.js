@@ -1,5 +1,4 @@
-import testGulpProcess, {compareTranspiled, touchFile}
-  from './test-gulp-process';
+import testGulpProcess, {compareTranspiled, touchFile} from 'test-gulp-process';
 
 describe('Testing GulpTask', function () {
   it(`Testing a transpile task`, testGulpProcess({

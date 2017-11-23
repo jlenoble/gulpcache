@@ -34,10 +34,6 @@
     "babel-plugin-transform-runtime": "^6.23.0",
     "babel-preset-env": "^1.6.1",
     "chai": "*",
-    "child-process-data": "^0.5.7",
-    "del": "*",
-    "destglob": "^0.1.4",
-    "equal-file-contents": "^0.1.5",
     "eslint-config-google": "*",
     "gulp": "git://github.com/gulpjs/gulp.git#4.0",
     "gulp-babel": "*",
@@ -50,7 +46,7 @@
     "gulp-wrap": "*",
     "markdown-include": "*",
     "plumb-gulp": "*",
-    "touch": "^3.1.0"
+    "test-gulp-process": "^0.1.1"
   },
   "peerDependencies": {}
 }
