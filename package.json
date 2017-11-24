@@ -25,10 +25,12 @@
   },
   "homepage": "https://github.com/jlenoble/gulptask#readme",
   "dependencies": {
-    "gulpstream": "^0.2.2"
+    "del": "^3.0.0",
+    "destglob": "^0.1.4",
+    "gulpstream": "^0.2.3"
   },
   "devDependencies": {
-    "autoreload-gulp": "*",
+    "autoreload-gulp": "^0.3.0",
     "babel-core": "^6.26.0",
     "babel-plugin-add-module-exports": "*",
     "babel-plugin-transform-runtime": "^6.23.0",
@@ -46,7 +48,7 @@
     "gulp-wrap": "*",
     "markdown-include": "*",
     "plumb-gulp": "*",
-    "test-gulp-process": "^0.1.1"
+    "test-gulp-process": "^0.2.0"
   },
   "peerDependencies": {}
 }
