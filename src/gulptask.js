@@ -1,5 +1,7 @@
 import GulpStream from 'gulpstream';
 import gulp from 'gulp';
+import destglob from 'destglob';
+import del from 'del';
 
 const getName = args => {
   let name;
@@ -44,7 +46,12 @@ export default class GulpTask {
     const _streamer = (new GulpStream(args)).at(0);
     const execFn = () => _streamer.dest().isReady();
     const watchFn = done => {
-      gulp.watch(_streamer.glob, execFn);
+      const watcher = gulp.watch(_streamer.glob, execFn);
+      watcher.on('unlink', file => {
+        if (this.dest) {
+          return del(destglob(file, this.dest));
+        }
+      });
       done();
     };
 

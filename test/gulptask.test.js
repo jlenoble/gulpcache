@@ -1,4 +1,5 @@
-import testGulpProcess, {compareTranspiled, touchFile} from 'test-gulp-process';
+import testGulpProcess, {compareTranspiled, touchFile, deleteFile, isDeleted}
+  from 'test-gulp-process';
 
 describe('Testing GulpTask', function () {
   it(`Testing a transpile task`, testGulpProcess({
@@ -8,13 +9,13 @@ describe('Testing GulpTask', function () {
     messages: [
       `Starting 'default'...`,
       `Starting 'exec:transpile:all'...`,
-      [`Finished 'exec:transpile:all' after`, compareTranspiled('src/**/*.js',
-        'build')],
+      [`Finished 'exec:transpile:all' after`,
+        compareTranspiled('src/**/*.js', 'build')],
       `Finished 'default' after`,
     ],
   }));
 
-  it(`Testing a tdd transpile task`, testGulpProcess({
+  it(`Testing a tdd transpile task - touching`, testGulpProcess({
     sources: ['src/**/*.js', 'test/**/*.js', 'gulp/**/*.js'],
     gulpfile: 'test/gulpfiles/tdd-transpile-all.js',
 
@@ -22,14 +23,37 @@ describe('Testing GulpTask', function () {
       `Starting 'default'...`,
       `Starting 'tdd:transpile:all'...`,
       `Starting 'exec:transpile:all'...`,
-      [`Finished 'exec:transpile:all' after`, compareTranspiled('src/**/*.js',
-        'build')],
+      [`Finished 'exec:transpile:all' after`,
+        compareTranspiled('src/**/*.js', 'build')],
       `Starting 'watch:transpile:all'...`,
       `Finished 'watch:transpile:all' after`,
       `Finished 'tdd:transpile:all' after`,
-      [`Finished 'default' after`, touchFile('src/gulptask.js')],
+      [`Finished 'default' after`,
+        touchFile('src/gulptask.js')],
       `Starting 'exec:transpile:all'...`,
       `Finished 'exec:transpile:all' after`,
+    ],
+  }));
+
+  it(`Testing a tdd transpile task - deleting`, testGulpProcess({
+    sources: ['src/**/*.js', 'test/**/*.js', 'gulp/**/*.js'],
+    gulpfile: 'test/gulpfiles/tdd-transpile-all.js',
+
+    messages: [
+      `Starting 'default'...`,
+      `Starting 'tdd:transpile:all'...`,
+      `Starting 'exec:transpile:all'...`,
+      [`Finished 'exec:transpile:all' after`,
+        compareTranspiled('src/**/*.js', 'build')],
+      `Starting 'watch:transpile:all'...`,
+      `Finished 'watch:transpile:all' after`,
+      `Finished 'tdd:transpile:all' after`,
+      [`Finished 'default' after`,
+        deleteFile('src/gulptask.js')],
+      `Starting 'exec:transpile:all'...`,
+      [`Finished 'exec:transpile:all' after`,
+        compareTranspiled('src/**/*.js', 'build'),
+        isDeleted('build/src/gulptask.js')],
     ],
   }));
 });
