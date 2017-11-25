@@ -51,7 +51,11 @@ const getFn = (args, _streamer) => {
   });
 
   if (!fn) {
-    fn = () => _streamer.dest().isReady();
+    if (_streamer._destination) {
+      fn = () => _streamer.dest().isReady();
+    } else {
+      fn = () => _streamer.stream();
+    }
   }
 
   return fn;
