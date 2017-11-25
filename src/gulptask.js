@@ -112,6 +112,11 @@ export default class GulpTask {
         value: _streamer.glob,
       },
 
+      destglob: {
+        value: _streamer.destination ? destglob(_streamer.glob,
+          _streamer.destination) : null,
+      },
+
       plugin: {
         value: _streamer.plugin,
       },
