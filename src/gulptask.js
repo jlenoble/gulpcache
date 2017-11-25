@@ -38,13 +38,32 @@ const getDescription = args => {
   return description;
 };
 
+const getFn = (args, _streamer) => {
+  let fn;
+
+  args.some(arg => {
+    if (arg.fn) {
+      fn = (...args) => arg.fn(...args);
+      return true;
+    }
+
+    return false;
+  });
+
+  if (!fn) {
+    fn = () => _streamer.dest().isReady();
+  }
+
+  return fn;
+};
+
 export default class GulpTask {
   constructor (...args) {
     const name = getName(args);
     const description = getDescription(args);
 
     const _streamer = (new GulpStream(args)).at(0);
-    const execFn = () => _streamer.dest().isReady();
+    const execFn = getFn(args, _streamer);
     const watchFn = done => {
       const watcher = gulp.watch(_streamer.glob, execFn);
       watcher.on('unlink', file => {
