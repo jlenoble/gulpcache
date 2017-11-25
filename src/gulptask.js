@@ -38,7 +38,7 @@ const getDescription = args => {
   return description;
 };
 
-const getFn = (args, _streamer) => {
+const makeFn = (args, _streamer) => {
   let fn;
 
   args.some(arg => {
@@ -61,22 +61,33 @@ const getFn = (args, _streamer) => {
   return fn;
 };
 
+const makeExecFn = (dependsOn, fn) => {
+  return dependsOn ? gulp.series(gulp.parallel(
+    ...dependsOn.map(task => `exec:${task}`)), fn) : fn;
+};
+
+const makeWatchFn = (dependsOn, ctx) => {
+  return done => {
+    const watcher = gulp.watch(ctx.glob, ctx.fn);
+    watcher.on('unlink', file => {
+      if (ctx.dest) {
+        return del(destglob(file, ctx.dest));
+      }
+    });
+    done();
+  };
+};
+
 export default class GulpTask {
   constructor (...args) {
     const name = getName(args);
     const description = getDescription(args);
+    const dependsOn = null;
 
     const _streamer = (new GulpStream(args)).at(0);
-    const execFn = getFn(args, _streamer);
-    const watchFn = done => {
-      const watcher = gulp.watch(_streamer.glob, execFn);
-      watcher.on('unlink', file => {
-        if (this.dest) {
-          return del(destglob(file, this.dest));
-        }
-      });
-      done();
-    };
+    const fn = makeFn(args, _streamer);
+
+    const execFn = makeExecFn(dependsOn, fn);
 
     Object.defineProperties(execFn, {
       name: {
@@ -85,16 +96,6 @@ export default class GulpTask {
 
       description: {
         value: description,
-      },
-    });
-
-    Object.defineProperties(watchFn, {
-      name: {
-        value: `watch:${name}`,
-      },
-
-      description: {
-        value: `Watching task ${execFn.name}`,
       },
     });
 
@@ -120,7 +121,19 @@ export default class GulpTask {
       },
 
       fn: {
-        value: execFn,
+        value: fn,
+      },
+    });
+
+    const watchFn = makeWatchFn(dependsOn, this);
+
+    Object.defineProperties(watchFn, {
+      name: {
+        value: `watch:${name}`,
+      },
+
+      description: {
+        value: `Watching task ${execFn.name}`,
       },
     });
 
