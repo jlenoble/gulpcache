@@ -1,14 +1,17 @@
 ## Usage !heading
 
-A `GulpTask` instance is initialized from 5 options:
+A `GulpTask` instance is initialized from 6 options:
 
-* `name`: A stem from which all task names are formed. 3 tasks are genrated automatically: `exec:stem`, `watch:stem` and `tdd:stem`, the latter running first `exec:stem` before starting watching.
-* `description`: A description for the `exec:stem` task.
-* `glob`: Glob for files to be sourced; `base` is always `process.cwd()`.
-* `pipe`: Array of initializer plugins with arguments used by underlying [PolyPipe](https://www.npmjs.com/package/polypipe).
-* `dest`: Where to write the transformed files.
+* `name` (mandatory): A stem from which all task names are formed. 3 tasks are generated automatically: `exec:stem`, `watch:stem` and `tdd:stem`, the latter running first `exec:stem` before starting watching.
+* `description` (optional): A description for the `exec:stem` task.
+* `glob` (mandatory): Glob for files to be sourced; `base` is always `process.cwd()`.
+* `pipe` (optional): Array of initializer plugins with arguments used by underlying [PolyPipe](https://www.npmjs.com/package/polypipe).
+* `dest` (optional): Where to write the transformed files.
+* `fn` (optional): Overrides `pipe` and `dest`, providing a custom function for the current task.
 
-### Example !heading
+Two options are mandatory: `name` and `glob`. But at least one of `pipe`, `dest` or `fn` should be provided for the task to do anything.
+
+### Transpiling example !heading
 
 ```js
 import GulpTask from 'gulptask';
