@@ -99,7 +99,14 @@ const makeWatchFn = (dependsOn, ctx) => {
         return del(destglob(file, ctx.dest));
       }
     });
-    done();
+
+    if (dependsOn) {
+      dependsOn.forEach(task => (new GulpTask(task)).watchFn());
+    }
+
+    if (done) {
+      done();
+    }
   };
 };
 
@@ -132,6 +139,18 @@ export class SimpleGulpTask {
 
       description: {
         value: `Executing task ${name}`,
+      },
+    });
+
+    const watchFn = makeWatchFn(dependsOn, this);
+
+    Object.defineProperties(watchFn, {
+      name: {
+        value: `watch:${name}`,
+      },
+
+      description: {
+        value: `Watching task ${execFn.name}`,
       },
     });
 
@@ -168,17 +187,9 @@ export class SimpleGulpTask {
       execFn: {
         value: execFn,
       },
-    });
 
-    const watchFn = makeWatchFn(dependsOn, this);
-
-    Object.defineProperties(watchFn, {
-      name: {
-        value: `watch:${name}`,
-      },
-
-      description: {
-        value: `Watching task ${execFn.name}`,
+      watchFn: {
+        value: watchFn,
       },
     });
 
