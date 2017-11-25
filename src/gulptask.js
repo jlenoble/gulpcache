@@ -1,3 +1,4 @@
+import {SingletonFactory} from 'singletons';
 import GulpStream from 'gulpstream';
 import gulp from 'gulp';
 import destglob from 'destglob';
@@ -38,6 +39,25 @@ const getDescription = args => {
   return description;
 };
 
+const getDependsOn = args => {
+  let dependsOn;
+
+  args.some(arg => {
+    if (arg.dependsOn) {
+      dependsOn = arg.dependsOn;
+      return true;
+    }
+
+    return false;
+  });
+
+  if (!dependsOn) {
+    return;
+  }
+
+  return Array.isArray(dependsOn) ? dependsOn : [dependsOn];
+};
+
 const makeFn = (args, _streamer) => {
   let fn;
 
@@ -62,8 +82,13 @@ const makeFn = (args, _streamer) => {
 };
 
 const makeExecFn = (dependsOn, fn) => {
-  return dependsOn ? gulp.series(gulp.parallel(
-    ...dependsOn.map(task => `exec:${task}`)), fn) : fn;
+  if (!dependsOn) {
+    return (...args) => fn(...args);
+  }
+
+  const execFns = dependsOn.map(task => (new GulpTask(task)).execFn);
+
+  return (...args) => gulp.series(gulp.parallel(...execFns), fn)(...args);
 };
 
 const makeWatchFn = (dependsOn, ctx) => {
@@ -78,14 +103,25 @@ const makeWatchFn = (dependsOn, ctx) => {
   };
 };
 
-export default class GulpTask {
+export class SimpleGulpTask {
   constructor (...args) {
     const name = getName(args);
     const description = getDescription(args);
-    const dependsOn = null;
+    const dependsOn = getDependsOn(args);
 
     const _streamer = (new GulpStream(args)).at(0);
+
     const fn = makeFn(args, _streamer);
+
+    Object.defineProperties(fn, {
+      name: {
+        value: name,
+      },
+
+      description: {
+        value: description,
+      },
+    });
 
     const execFn = makeExecFn(dependsOn, fn);
 
@@ -95,7 +131,7 @@ export default class GulpTask {
       },
 
       description: {
-        value: description,
+        value: `Executing task ${name}`,
       },
     });
 
@@ -128,6 +164,10 @@ export default class GulpTask {
       fn: {
         value: fn,
       },
+
+      execFn: {
+        value: execFn,
+      },
     });
 
     const watchFn = makeWatchFn(dependsOn, this);
@@ -147,3 +187,12 @@ export default class GulpTask {
     gulp.task(`tdd:${name}`, gulp.series(execFn, watchFn));
   }
 }
+
+const GulpTask = SingletonFactory(SimpleGulpTask, // eslint-disable-line new-cap
+  ['literal', {type: 'ignore', rest: true}], {
+    preprocess (args) {
+      return [getName(args), ...args];
+    },
+  });
+
+export default GulpTask;

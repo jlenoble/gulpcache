@@ -30,8 +30,8 @@ describe('Testing GulpTask', function () {
       `Finished 'tdd:transpile:all' after`,
       [`Finished 'default' after`,
         touchFile('src/gulptask.js')],
-      `Starting 'exec:transpile:all'...`,
-      `Finished 'exec:transpile:all' after`,
+      `Starting 'transpile:all'...`,
+      `Finished 'transpile:all' after`,
     ],
   }));
 
@@ -50,8 +50,8 @@ describe('Testing GulpTask', function () {
       `Finished 'tdd:transpile:all' after`,
       [`Finished 'default' after`,
         deleteFile('src/gulptask.js')],
-      `Starting 'exec:transpile:all'...`,
-      [`Finished 'exec:transpile:all' after`,
+      `Starting 'transpile:all'...`,
+      [`Finished 'transpile:all' after`,
         compareTranspiled('src/**/*.js', 'build'),
         isDeleted('build/src/gulptask.js')],
     ],

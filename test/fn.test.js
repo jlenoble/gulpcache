@@ -28,9 +28,9 @@ describe('Testing GulpTask', function () {
       `Finished 'watch:hello' after`,
       `Finished 'tdd:hello' after`,
       [`Finished 'default' after`, touchFile('src/gulptask.js')],
-      `Starting 'exec:hello'...`,
+      `Starting 'hello'...`,
       `Hello`,
-      `Finished 'exec:hello' after`,
+      `Finished 'hello' after`,
     ],
   }));
 });
