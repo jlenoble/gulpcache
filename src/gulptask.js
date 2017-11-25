@@ -3,6 +3,9 @@ import GulpStream from 'gulpstream';
 import gulp from 'gulp';
 import destglob from 'destglob';
 import del from 'del';
+import DependencyMap from './dependency-map';
+
+const dependencies = new DependencyMap();
 
 const getName = args => {
   let name;
@@ -52,7 +55,7 @@ const getDependsOn = args => {
   });
 
   if (!dependsOn) {
-    return;
+    return [];
   }
 
   return Array.isArray(dependsOn) ? dependsOn : [dependsOn];
@@ -81,17 +84,19 @@ const makeFn = (args, _streamer) => {
   return fn;
 };
 
-const makeExecFn = (dependsOn, fn) => {
-  if (!dependsOn) {
-    return (...args) => fn(...args);
-  }
+const makeExecFn = ctx => {
+  return (...args) => {
+    const execFns = ctx.getDependencies().map(task => task.execFn);
 
-  const execFns = dependsOn.map(task => (new GulpTask(task)).execFn);
+    if (execFns.length) {
+      return gulp.series(gulp.parallel(...execFns), ctx.fn)(...args);
+    }
 
-  return (...args) => gulp.series(gulp.parallel(...execFns), fn)(...args);
+    return ctx.fn(...args);
+  };
 };
 
-const makeWatchFn = (dependsOn, ctx) => {
+const makeWatchFn = ctx => {
   return done => {
     const watcher = gulp.watch(ctx.glob, ctx.fn);
     watcher.on('unlink', file => {
@@ -100,8 +105,10 @@ const makeWatchFn = (dependsOn, ctx) => {
       }
     });
 
-    if (dependsOn) {
-      dependsOn.forEach(task => (new GulpTask(task)).watchFn());
+    const watchFns = ctx.getDependencies().map(task => task.watchFn);
+
+    if (watchFns.length) {
+      watchFns.forEach(fn => fn());
     }
 
     if (done) {
@@ -130,7 +137,7 @@ export class SimpleGulpTask {
       },
     });
 
-    const execFn = makeExecFn(dependsOn, fn);
+    const execFn = makeExecFn(this);
 
     Object.defineProperties(execFn, {
       name: {
@@ -142,7 +149,7 @@ export class SimpleGulpTask {
       },
     });
 
-    const watchFn = makeWatchFn(dependsOn, this);
+    const watchFn = makeWatchFn(this);
 
     Object.defineProperties(watchFn, {
       name: {
@@ -161,6 +168,10 @@ export class SimpleGulpTask {
 
       description: {
         value: description,
+      },
+
+      dependsOn: {
+        value: dependsOn,
       },
 
       glob: {
@@ -193,9 +204,17 @@ export class SimpleGulpTask {
       },
     });
 
+    dependencies.registerAsDependent(this);
+
     gulp.task(execFn);
     gulp.task(watchFn);
     gulp.task(`tdd:${name}`, gulp.series(execFn, watchFn));
+  }
+
+  getDependencies () {
+    const explicitDeps = this.dependsOn.map(task => new GulpTask(task));
+    const implicitDeps = dependencies.getDependenciesFor(this);
+    return Array.from(new Set(explicitDeps.concat(implicitDeps)));
   }
 }
 
