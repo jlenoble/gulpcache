@@ -62,6 +62,7 @@ const getDependsOn = args => {
 };
 
 const makeFn = (args, _streamer) => {
+  // Base action for task
   let fn;
 
   args.some(arg => {
@@ -85,6 +86,8 @@ const makeFn = (args, _streamer) => {
 };
 
 const makeExecFn = ctx => {
+  // Base action for task preceded by all required actions
+  // For this, implicit and explicit deps are the same
   return (...args) => {
     const execFns = ctx.getDependencies().map(task => task.execFn);
 
@@ -97,6 +100,10 @@ const makeExecFn = ctx => {
 };
 
 const makeWatchFn = ctx => {
+  // Watching to trigger base action
+  // Also setting watch on deps, implicit and explicit alike
+  // Implicit will trigger back the task (say source files have changed)
+  // But explicit must force action again (say config files have changed)
   return done => {
     const watcher = gulp.watch(ctx.glob, ctx.fn);
     watcher.on('unlink', file => {
