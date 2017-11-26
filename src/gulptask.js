@@ -211,7 +211,7 @@ export class SimpleGulpTask {
       },
     });
 
-    dependencies.registerAsDependent(this);
+    dependencies.register(this);
 
     gulp.task(execFn);
     gulp.task(watchFn);
@@ -219,9 +219,11 @@ export class SimpleGulpTask {
   }
 
   getDependencies () {
-    const explicitDeps = this.dependsOn.map(task => new GulpTask(task));
-    const implicitDeps = dependencies.getDependenciesFor(this);
-    return Array.from(new Set(explicitDeps.concat(implicitDeps)));
+    return dependencies.getDependencies(this);
+  }
+
+  getTask (name) {
+    return GulpTask.get(name);
   }
 }
 

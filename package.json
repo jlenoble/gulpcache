@@ -27,7 +27,8 @@
   "dependencies": {
     "del": "^3.0.0",
     "destglob": "^0.1.4",
-    "gulpstream": "^0.2.3"
+    "gulpstream": "^0.2.3",
+    "singletons": "^0.8.1"
   },
   "devDependencies": {
     "autoreload-gulp": "^0.3.0",
