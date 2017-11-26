@@ -10,11 +10,11 @@ export default class DependencyMap {
   }
 
   register (task) {
-    this.registerAsExplicitDependency(task);
-    this.registerAsImplicitDependent(task);
+    this.registerAsExplicitDependent(task);
+    this.registerAsImplicitDependency(task);
   }
 
-  registerAsExplicitDependency (task) {
+  registerAsExplicitDependent (task) {
     task.dependsOn.forEach(name => {
       const tasks = this.map.get(task);
 
@@ -26,7 +26,7 @@ export default class DependencyMap {
     });
   }
 
-  registerAsImplicitDependent (task) {
+  registerAsImplicitDependency (task) {
     // Task is registered according to its downstream output
     // so that another task can check if it has it as its upstream input
 
