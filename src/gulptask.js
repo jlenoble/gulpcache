@@ -82,7 +82,15 @@ const makeFn = (args, ctx) => {
     }
   }
 
-  return fn;
+  return (...args) => {
+    const fns = ctx.getDependents().map(task => task.fn);
+
+    if (fns.length) {
+      return gulp.series(fn, gulp.parallel(...fns))(...args);
+    }
+
+    return fn(...args);
+  };
 };
 
 const makeExecFn = ctx => {
@@ -222,6 +230,10 @@ export class SimpleGulpTask {
 
   getDependencies () {
     return dependencies.getDependencies(this);
+  }
+
+  getDependents () {
+    return dependencies.getDependents(this);
   }
 
   getTask (name) {

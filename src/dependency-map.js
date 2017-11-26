@@ -23,6 +23,14 @@ export default class DependencyMap {
       } else {
         this.map.set(task, new Set([name]));
       }
+
+      const names = this.map.get(name);
+
+      if (names) {
+        tasks.add(task);
+      } else {
+        this.map.set(name, new Set([task]));
+      }
     });
   }
 
@@ -60,6 +68,11 @@ export default class DependencyMap {
   getImplicitDependencies (task) {
     // Take advantage of singletonness of GulpGlobs
     const set = this.map.get(new GulpGlob(task.glob));
+    return set ? Array.from(set) : [];
+  }
+
+  getDependents ({name}) {
+    const set = this.map.get(name);
     return set ? Array.from(set) : [];
   }
 }

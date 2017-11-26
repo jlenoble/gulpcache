@@ -10,7 +10,7 @@ new GulpTask({
 
 new GulpTask({
   name: 'transpile',
-  glob: 'tmp/src/**/*.js',
+  glob: 'test/**/*.js',
   dest: 'build',
   pipe: babel,
   dependsOn: 'copy',
