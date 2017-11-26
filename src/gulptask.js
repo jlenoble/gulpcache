@@ -61,7 +61,7 @@ const getDependsOn = args => {
   return Array.isArray(dependsOn) ? dependsOn : [dependsOn];
 };
 
-const makeFn = (args, _streamer) => {
+const makeFn = (args, ctx) => {
   // Base action for task
   let fn;
 
@@ -75,10 +75,10 @@ const makeFn = (args, _streamer) => {
   });
 
   if (!fn) {
-    if (_streamer._destination) {
-      fn = () => _streamer.dest().isReady();
+    if (ctx.dest) {
+      fn = () => ctx.streamer.dest().isReady();
     } else {
-      fn = () => _streamer.stream();
+      fn = () => ctx.streamer.stream();
     }
   }
 
@@ -128,7 +128,42 @@ export class SimpleGulpTask {
 
     const _streamer = (new GulpStream(args)).at(0);
 
-    const fn = makeFn(args, _streamer);
+    Object.defineProperties(this, {
+      name: {
+        value: name,
+      },
+
+      description: {
+        value: description,
+      },
+
+      dependsOn: {
+        value: dependsOn,
+      },
+
+      glob: {
+        value: _streamer.glob,
+      },
+
+      destglob: {
+        value: _streamer.destination ? destglob(_streamer.glob,
+          _streamer.destination) : null,
+      },
+
+      plugin: {
+        value: _streamer.plugin,
+      },
+
+      dest: {
+        value: _streamer.destination,
+      },
+
+      streamer: {
+        value: _streamer,
+      },
+    });
+
+    const fn = makeFn(args, this);
 
     Object.defineProperties(fn, {
       name: {
@@ -165,35 +200,6 @@ export class SimpleGulpTask {
     });
 
     Object.defineProperties(this, {
-      name: {
-        value: name,
-      },
-
-      description: {
-        value: description,
-      },
-
-      dependsOn: {
-        value: dependsOn,
-      },
-
-      glob: {
-        value: _streamer.glob,
-      },
-
-      destglob: {
-        value: _streamer.destination ? destglob(_streamer.glob,
-          _streamer.destination) : null,
-      },
-
-      plugin: {
-        value: _streamer.plugin,
-      },
-
-      dest: {
-        value: _streamer.destination,
-      },
-
       fn: {
         value: fn,
       },
