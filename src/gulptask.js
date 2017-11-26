@@ -112,11 +112,7 @@ const makeWatchFn = ctx => {
       }
     });
 
-    const watchFns = ctx.getDependencies().map(task => task.watchFn);
-
-    if (watchFns.length) {
-      watchFns.forEach(fn => fn());
-    }
+    ctx.getDependencies().map(task => task.watchFn).forEach(fn => fn());
 
     if (done) {
       done();
