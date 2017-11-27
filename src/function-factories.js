@@ -79,7 +79,7 @@ const makeWatchFn = ctx => {
   // thanks to the watch chain.
   // But explicit must force action again (say config files have changed), so
   // explicit execution chain is handled at the level of fn prop itself
-  const f = done => {
+  const f = () => {
     const watcher = gulp.watch(ctx.glob, ctx.fn);
     watcher.on('unlink', file => {
       if (ctx.dest) {
@@ -87,11 +87,11 @@ const makeWatchFn = ctx => {
       }
     });
 
-    ctx.getDependencies().map(task => task.watchFn).forEach(wfn => wfn());
+    Object.defineProperty(ctx, 'isWatched', {value: true});
 
-    if (done) {
-      done();
-    }
+    return Promise.all(ctx.getDependencies()
+      .filter(task => !task.isWatched)
+      .map(task => task.watchFn()));
   };
 
   Object.defineProperties(f, {
