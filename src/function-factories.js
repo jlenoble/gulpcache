@@ -3,27 +3,23 @@ import del from 'del';
 import destglob from 'destglob';
 
 const setFnProperties = (fn, ctx, stem) => {
-  let name;
+  let name = stem ? `${stem}:${ctx.name}` : ctx.name;
   let description;
 
   switch (stem) {
   case 'trigger':
-    name = `trigger:${ctx.name}`;
-    description = `Triggering task ${ctx.name} and dependents`;
+    description = `Triggering task ${name} and dependents`;
     break;
 
   case 'exec':
-    name = `exec:${ctx.name}`;
-    description = `Executing task ${ctx.name} and dependencies`;
+    description = `Executing task ${name} and dependencies`;
     break;
 
   case 'watch':
-    name = `watch:${ctx.name}`;
-    description = `Watching task ${ctx.name} and dependencies`;
+    description = `Watching task ${name} and dependencies`;
     break;
 
   default:
-    name = ctx.name;
     description = ctx.description;
     break;
   }
