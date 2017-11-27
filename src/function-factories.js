@@ -2,6 +2,49 @@ import gulp from 'gulp';
 import del from 'del';
 import destglob from 'destglob';
 
+const setFnProperties = (fn, ctx, stem) => {
+  let name;
+  let description;
+
+  switch (stem) {
+  case 'trigger':
+    name = `trigger:${ctx.name}`;
+    description = `Triggering task ${ctx.name} and dependents`;
+    break;
+
+  case 'exec':
+    name = `exec:${ctx.name}`;
+    description = `Executing task ${ctx.name} and dependencies`;
+    break;
+
+  case 'watch':
+    name = `watch:${ctx.name}`;
+    description = `Watching task ${ctx.name} and dependencies`;
+    break;
+
+  default:
+    name = ctx.name;
+    description = ctx.description;
+    break;
+  }
+
+  Object.defineProperties(fn, {
+    name: {
+      value: name,
+    },
+
+    description: {
+      value: description,
+    },
+  });
+};
+
+const overrideOnFirstCall = (stem, newFn, ctx) => {
+  const f = (...args) => newFn(...args);
+
+  return f;
+};
+
 const makeFn = (args, ctx) => {
   // Base action for task
   let fn;
@@ -23,15 +66,7 @@ const makeFn = (args, ctx) => {
     }
   }
 
-  Object.defineProperties(fn, {
-    name: {
-      value: ctx.name,
-    },
-
-    description: {
-      value: ctx.description,
-    },
-  });
+  setFnProperties(fn, ctx);
 
   return fn;
 };
@@ -46,22 +81,14 @@ const makeTriggerFn = ctx => {
       .filter(task => task.isWatched)
       .map(task => task.triggerFn);
 
-    if (fns.length) {
-      return gulp.series(ctx.fn, gulp.parallel(...fns))(...args);
-    }
+    const fn = fns.length ? gulp.series(ctx.fn, gulp.parallel(...fns)) : ctx.fn;
 
-    return ctx.fn(...args);
+    overrideOnFirstCall('trigger', fn, ctx);
+
+    return fn(...args);
   };
 
-  Object.defineProperties(f, {
-    name: {
-      value: `trigger:${ctx.name}`,
-    },
-
-    description: {
-      value: `triggering task ${ctx.name} and dependents`,
-    },
-  });
+  setFnProperties(f, ctx, 'trigger');
 
   return f;
 };
@@ -72,22 +99,15 @@ const makeExecFn = ctx => {
   const f = (...args) => {
     const execFns = ctx.getDependencies().map(task => task.execFn);
 
-    if (execFns.length) {
-      return gulp.series(gulp.parallel(...execFns), ctx.fn)(...args);
-    }
+    const fn = execFns.length ? gulp.series(gulp.parallel(...execFns), ctx.fn) :
+      ctx.fn;
 
-    return ctx.fn(...args);
+    overrideOnFirstCall('exec', fn, ctx);
+
+    return fn(...args);
   };
 
-  Object.defineProperties(f, {
-    name: {
-      value: `exec:${ctx.name}`,
-    },
-
-    description: {
-      value: `Executing task ${ctx.name} and dependencies`,
-    },
-  });
+  setFnProperties(f, ctx, 'exec');
 
   return f;
 };
@@ -114,15 +134,7 @@ const makeWatchFn = ctx => {
       .map(task => task.watchFn()));
   };
 
-  Object.defineProperties(f, {
-    name: {
-      value: `watch:${ctx.name}`,
-    },
-
-    description: {
-      value: `Watching task ${ctx.name}`,
-    },
-  });
+  setFnProperties(f, ctx, 'watch');
 
   return f;
 };
