@@ -17,7 +17,7 @@ A `GulpTask` instance is initialized from 6 options:
 * `pipe` (optional): Array of initializer plugins with arguments used by underlying [PolyPipe](https://www.npmjs.com/package/polypipe).
 * `dest` (optional): Where to write the transformed files.
 * `fn` (optional): Overrides `pipe` and `dest`, providing a custom function for the current task.
-* dependsOn (optional): GulpTask name or array of GulpTask names; Ensures that tasks depended upon are executed first. Note that if dependency tasks have `dest` defined, then the dependency is implicitly set anyway.
+* `dependsOn` (optional): GulpTask name or array of GulpTask names; Ensures that tasks depended upon are executed first. Note that if dependency tasks have `dest` defined, then the dependency is implicitly set anyway.
 
 Two options are mandatory: `name` and `glob`. But at least one of `pipe`, `dest` or `fn` should be provided for the task to do anything.
 
