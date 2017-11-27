@@ -73,10 +73,12 @@ const makeExecFn = ctx => {
 };
 
 const makeWatchFn = ctx => {
-  // Watching to trigger base action
-  // Also setting watch on deps, implicit and explicit alike
-  // Implicit will trigger back the task (say source files have changed)
-  // But explicit must force action again (say config files have changed)
+  // Watching to trigger base action.
+  // Also setting watch on deps, implicit and explicit alike.
+  // Note: Implicit will trigger back the task (say source files have changed)
+  // thanks to the watch chain.
+  // But explicit must force action again (say config files have changed), so
+  // explicit execution chain is handled at the level of fn prop itself
   const f = done => {
     const watcher = gulp.watch(ctx.glob, ctx.fn);
     watcher.on('unlink', file => {
@@ -85,7 +87,7 @@ const makeWatchFn = ctx => {
       }
     });
 
-    ctx.getDependencies().map(task => task.watchFn).forEach(fn => fn());
+    ctx.getDependencies().map(task => task.watchFn).forEach(wfn => wfn());
 
     if (done) {
       done();
