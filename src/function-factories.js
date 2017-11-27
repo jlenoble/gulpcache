@@ -23,23 +23,43 @@ const makeFn = (args, ctx) => {
     }
   }
 
-  const f = (...args) => {
-    const fns = ctx.getDependents().map(task => task.fn);
-
-    if (fns.length) {
-      return gulp.series(fn, gulp.parallel(...fns))(...args);
-    }
-
-    return fn(...args);
-  };
-
-  Object.defineProperties(f, {
+  Object.defineProperties(fn, {
     name: {
       value: ctx.name,
     },
 
     description: {
       value: ctx.description,
+    },
+  });
+
+  return fn;
+};
+
+const makeTriggerFn = ctx => {
+  // Base action for task triggering all *explicit* dependents
+  // Only used in watch mode; exec mod has its own dependency scheme.
+  // Filtering on isWatched allows to interrupt the trigger chain and not
+  // do operations not required for the prompted gulp target.
+  const f = (...args) => {
+    const fns = ctx.getDependents()
+      .filter(task => task.isWatched)
+      .map(task => task.triggerFn);
+
+    if (fns.length) {
+      return gulp.series(ctx.fn, gulp.parallel(...fns))(...args);
+    }
+
+    return ctx.fn(...args);
+  };
+
+  Object.defineProperties(f, {
+    name: {
+      value: `trigger:${ctx.name}`,
+    },
+
+    description: {
+      value: `triggering task ${ctx.name} and dependents`,
     },
   });
 
@@ -65,7 +85,7 @@ const makeExecFn = ctx => {
     },
 
     description: {
-      value: `Executing task ${ctx.name}`,
+      value: `Executing task ${ctx.name} and dependencies`,
     },
   });
 
@@ -78,9 +98,9 @@ const makeWatchFn = ctx => {
   // Note: Implicit will trigger back the task (say source files have changed)
   // thanks to the watch chain.
   // But explicit must force action again (say config files have changed), so
-  // explicit execution chain is handled at the level of fn prop itself
+  // explicit execution chain is handled at the level of triggerFn prop
   const f = () => {
-    const watcher = gulp.watch(ctx.glob, ctx.fn);
+    const watcher = gulp.watch(ctx.glob, ctx.triggerFn);
     watcher.on('unlink', file => {
       if (ctx.dest) {
         return del(destglob(file, ctx.dest));
@@ -107,4 +127,4 @@ const makeWatchFn = ctx => {
   return f;
 };
 
-export {makeFn, makeExecFn, makeWatchFn};
+export {makeFn, makeTriggerFn, makeExecFn, makeWatchFn};

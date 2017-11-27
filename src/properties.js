@@ -1,6 +1,7 @@
 import GulpStream from 'gulpstream';
 import destglob from 'destglob';
-import {makeFn, makeExecFn, makeWatchFn} from './function-factories';
+import {makeFn, makeTriggerFn, makeExecFn, makeWatchFn}
+  from './function-factories';
 
 const getName = args => {
   let name;
@@ -102,6 +103,10 @@ const setFunctionProperties = (ctx, args) => {
   Object.defineProperties(ctx, {
     fn: {
       value: makeFn(args, ctx),
+    },
+
+    triggerFn: {
+      value: makeTriggerFn(ctx),
     },
 
     execFn: {
