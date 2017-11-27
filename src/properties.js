@@ -1,6 +1,6 @@
 import GulpStream from 'gulpstream';
 import destglob from 'destglob';
-import {makeFn, makeTriggerFn, makeExecFn, makeWatchFn}
+import {setFnProperties, makeFn, makeTriggerFn, makeExecFn, makeWatchFn}
   from './function-factories';
 
 const getName = args => {
@@ -105,18 +105,31 @@ const setFunctionProperties = (ctx, args) => {
       value: makeFn(args, ctx),
     },
 
-    triggerFn: {
+    _triggerFn: { // overridden on first call and set to non configurable
       value: makeTriggerFn(ctx),
+      configurable: true,
+    },
+
+    triggerFn: {
+      value: (...args) => ctx._triggerFn(...args),
+    },
+
+    _execFn: { // overridden on first call and set to non configurable
+      value: makeExecFn(ctx),
+      configurable: true,
     },
 
     execFn: {
-      value: makeExecFn(ctx),
+      value: (...args) => ctx._execFn(...args),
     },
 
     watchFn: {
       value: makeWatchFn(ctx),
     },
   });
+
+  setFnProperties(ctx.triggerFn, ctx, 'trigger');
+  setFnProperties(ctx.execFn, ctx, 'exec');
 };
 
 export {getName, setMainProperties, mixInStreamerProperties,

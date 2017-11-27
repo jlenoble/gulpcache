@@ -3,7 +3,7 @@ import del from 'del';
 import destglob from 'destglob';
 
 const setFnProperties = (fn, ctx, stem) => {
-  let name = stem ? `${stem}:${ctx.name}` : ctx.name;
+  const name = stem ? `${stem}:${ctx.name}` : ctx.name;
   let description;
 
   switch (stem) {
@@ -35,10 +35,15 @@ const setFnProperties = (fn, ctx, stem) => {
   });
 };
 
-const overrideOnFirstCall = (stem, newFn, ctx) => {
-  const f = (...args) => newFn(...args);
+const overrideOnFirstCall = (fn, ctx, stem) => {
+  // Prevents from looking for deps and recreating fn on each call
+  // triggerFn wraps _triggerFn and execFn wraps _execFn
+  const f = (...args) => fn(...args);
 
-  return f;
+  Object.defineProperty(ctx, `_${stem}Fn`, {
+    value: f,
+    configurable: false,
+  });
 };
 
 const makeFn = (args, ctx) => {
@@ -79,12 +84,10 @@ const makeTriggerFn = ctx => {
 
     const fn = fns.length ? gulp.series(ctx.fn, gulp.parallel(...fns)) : ctx.fn;
 
-    overrideOnFirstCall('trigger', fn, ctx);
+    overrideOnFirstCall(fn, ctx, 'trigger');
 
     return fn(...args);
   };
-
-  setFnProperties(f, ctx, 'trigger');
 
   return f;
 };
@@ -93,17 +96,16 @@ const makeExecFn = ctx => {
   // Base action for task preceded by all required actions
   // For this, implicit and explicit deps are the same
   const f = (...args) => {
-    const execFns = ctx.getDependencies().map(task => task.execFn);
+    const execFns = ctx.getDependencies()
+      .map(task => task.execFn);
 
     const fn = execFns.length ? gulp.series(gulp.parallel(...execFns), ctx.fn) :
       ctx.fn;
 
-    overrideOnFirstCall('exec', fn, ctx);
+    overrideOnFirstCall(fn, ctx, 'exec');
 
     return fn(...args);
   };
-
-  setFnProperties(f, ctx, 'exec');
 
   return f;
 };
@@ -135,4 +137,4 @@ const makeWatchFn = ctx => {
   return f;
 };
 
-export {makeFn, makeTriggerFn, makeExecFn, makeWatchFn};
+export {setFnProperties, makeFn, makeTriggerFn, makeExecFn, makeWatchFn};
