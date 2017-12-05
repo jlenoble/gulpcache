@@ -1,4 +1,4 @@
-import GulpStream from 'gulpstream';
+import GulpStream, {makeOptions} from 'gulpstream';
 import destglob from 'destglob';
 import {setFnProperties, makeFn, makeTriggerFn, makeExecFn, makeWatchFn}
   from './function-factories';
@@ -57,6 +57,13 @@ const getDependsOn = args => {
   return Array.isArray(dependsOn) ? dependsOn : [dependsOn];
 };
 
+const makeStreamer = args => {
+  const {glob, pipe, dest} = makeOptions(args);
+  return new GulpStream(
+    ['default', glob, pipe, dest],
+  );
+};
+
 const setMainProperties = (ctx, args) => {
   Object.defineProperties(ctx, {
     name: {
@@ -72,7 +79,7 @@ const setMainProperties = (ctx, args) => {
     },
 
     streamer: {
-      value: (new GulpStream(args)).at(0),
+      value: makeStreamer(args).at(0),
     },
   });
 };
