@@ -1,17 +1,21 @@
-import testGulpProcess, {touchFile} from 'test-gulp-process';
+import testGulpProcess, {touchFile, isFound, compareTranspiled, snapshot,
+  isNewer, isUntouched} from 'test-gulp-process';
 
 describe('Testing GulpTask', function () {
   it(`Testing a task depending implicitly on another`, testGulpProcess({
     sources: ['src/**/*.js'],
     gulpfile: 'test/gulpfiles/exec-autodep.js',
+    debug: true,
 
     messages: [
       `Starting 'default'...`,
       `Starting 'exec:transpile'...`,
       `Starting 'exec:copy'...`,
-      `Finished 'exec:copy' after`,
+      [`Finished 'exec:copy' after`,
+        isFound('tmp/src/gulptask.js')],
       `Starting 'transpile'...`,
-      `Finished 'transpile' after`,
+      [`Finished 'transpile' after`,
+        compareTranspiled('src/**/*.js', 'build/tmp')],
       `Finished 'exec:transpile' after`,
       `Finished 'default' after`,
     ],
@@ -20,6 +24,7 @@ describe('Testing GulpTask', function () {
   it(`Testing a tdd task depending implicitly on another`, testGulpProcess({
     sources: ['src/**/*.js'],
     gulpfile: 'test/gulpfiles/tdd-autodep.js',
+    debug: true,
 
     messages: [
       `Starting 'default'...`,
@@ -30,14 +35,22 @@ describe('Testing GulpTask', function () {
       `Finished 'transpile' after`,
       `Finished 'exec:transpile' after`,
       [`Finished 'default' after`,
+        snapshot('build/tmp/src/**/*.js'),
+        snapshot('tmp/src/**/*.js'),
         touchFile('tmp/src/gulptask.js')],
       `Starting 'trigger:transpile'...`,
       [`Finished 'trigger:transpile' after`,
+        isNewer('build/tmp/src/**/*.js'),
+        isUntouched(['tmp/src/**/*.js', '!tmp/src/gulptask.js']),
+        snapshot('build/tmp/src/**/*.js'),
+        snapshot('tmp/src/**/*.js'),
         touchFile('src/gulptask.js')],
       `Starting 'trigger:copy'...`,
       `Finished 'trigger:copy' after`,
       `Starting 'trigger:transpile'...`,
-      `Finished 'trigger:transpile' after`,
+      [`Finished 'trigger:transpile' after`,
+        isNewer('build/tmp/src/**/*.js'),
+        isNewer('tmp/src/**/*.js')],
     ],
   }));
 });
