@@ -26,9 +26,7 @@
   "homepage": "https://github.com/jlenoble/gulptask#readme",
   "dependencies": {
     "del": "^3.0.0",
-    "destglob": "^0.1.4",
-    "gulpstream": "^0.3.3",
-    "singletons": "^0.8.2"
+    "gulpstream": "^0.3.4"
   },
   "devDependencies": {
     "autoreload-gulp": "^0.3.0",
