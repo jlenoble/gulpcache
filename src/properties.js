@@ -79,7 +79,7 @@ const setMainProperties = (ctx, args) => {
     },
 
     streamer: {
-      value: makeStreamer(args).at(0),
+      value: makeStreamer(args),
     },
   });
 };
