@@ -39,7 +39,7 @@ export default class DependencyMap {
     // so that another task can check if it has it as its upstream input
 
     // Take advantage of singletonness of GulpGlobs
-    let destglob = task.destglob && new GulpGlob(task.destglob);
+    const destglob = task.destglob && new GulpGlob(task.destglob);
 
     if (!destglob) {
       return;
