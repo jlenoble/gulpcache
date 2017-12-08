@@ -1,6 +1,6 @@
 import gulp from 'gulp';
 import del from 'del';
-import destglob from 'destglob';
+import {rebaseGlob} from 'polypath';
 
 const setFnProperties = (fn, ctx, stem) => {
   const name = stem ? `${stem}:${ctx.name}` : ctx.name;
@@ -121,7 +121,7 @@ const makeWatchFn = ctx => {
     const watcher = gulp.watch(ctx.glob, ctx.triggerFn);
     watcher.on('unlink', file => {
       if (ctx.dest) {
-        return del(destglob(file, ctx.dest));
+        return del(rebaseGlob(file, ctx.dest));
       }
     });
 

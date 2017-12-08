@@ -1,5 +1,5 @@
 import GulpStream, {makeOptions} from 'gulpstream';
-import destglob from 'destglob';
+import {rebaseGlob} from 'polypath';
 import {setFnProperties, makeFn, makeTriggerFn, makeExecFn, makeWatchFn}
   from './function-factories';
 
@@ -91,7 +91,7 @@ const mixInStreamerProperties = ctx => {
     },
 
     destglob: {
-      value: ctx.streamer.destination ? destglob(ctx.streamer.glob,
+      value: ctx.streamer.destination ? rebaseGlob(ctx.streamer.glob,
         ctx.streamer.destination) : null,
     },
 
