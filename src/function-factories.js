@@ -2,13 +2,17 @@ import gulp from 'gulp';
 import del from 'del';
 import {rebaseGlob} from 'polypath';
 
-const setFnProperties = (fn, ctx, stem) => {
+export const setFnProperties = (fn, ctx, stem) => {
   const name = stem ? `${stem}:${ctx.name}` : ctx.name;
   let description;
 
   switch (stem) {
   case 'trigger':
     description = `Triggering task ${name} and dependents`;
+    break;
+
+  case 'triggered':
+    description = `Triggered task ${name} and dependents`;
     break;
 
   case 'exec':
@@ -38,7 +42,12 @@ const setFnProperties = (fn, ctx, stem) => {
 const overrideOnFirstCall = (fn, ctx, stem) => {
   // Prevents from looking for deps and recreating fn on each call
   // triggerFn wraps _triggerFn and execFn wraps _execFn
-  const f = (...args) => fn(...args);
+  const mode = stem === 'triggered' ? 'default' : 'newer';
+
+  const f = (...args) => {
+    ctx.streamer.setMode(mode);
+    return fn(...args);
+  };
 
   Object.defineProperty(ctx, `_${stem}Fn`, {
     value: f,
@@ -46,7 +55,7 @@ const overrideOnFirstCall = (fn, ctx, stem) => {
   });
 };
 
-const makeFn = (args, ctx) => {
+export const makeFn = (args, ctx) => {
   // Base action for task
   let fn;
 
@@ -61,9 +70,15 @@ const makeFn = (args, ctx) => {
 
   if (!fn) {
     if (ctx.dest) {
-      fn = () => ctx.streamer.dest().isReady();
+      fn = () => {
+        const options = {read: true, mode: ctx.streamer.mode};
+        return ctx.streamer.dest(options).isReady();
+      };
     } else {
-      fn = () => ctx.streamer.stream();
+      fn = () => {
+        const options = {read: true, mode: ctx.streamer.mode};
+        return ctx.streamer.stream(options);
+      };
     }
   }
 
@@ -72,7 +87,7 @@ const makeFn = (args, ctx) => {
   return fn;
 };
 
-const makeTriggerFn = ctx => {
+export const makeTriggerFn = ctx => {
   // Base action for task triggering all *explicit* dependents
   // Only used in watch mode; exec mod has its own dependency scheme.
   // Filtering on isWatched allows to interrupt the trigger chain and not
@@ -80,11 +95,13 @@ const makeTriggerFn = ctx => {
   const f = (...args) => {
     const fns = ctx.getDependents()
       .filter(task => task.isWatched)
-      .map(task => task.triggerFn);
+      .map(task => task.triggeredFn);
 
     const fn = fns.length ? gulp.series(ctx.fn, gulp.parallel(...fns)) : ctx.fn;
 
     overrideOnFirstCall(fn, ctx, 'trigger');
+
+    ctx.streamer.setMode('newer');
 
     return fn(...args);
   };
@@ -92,7 +109,28 @@ const makeTriggerFn = ctx => {
   return f;
 };
 
-const makeExecFn = ctx => {
+export const makeTriggeredFn = ctx => {
+  // Triggered tasks don't filter their input and process all.
+  // Filtering on isWatched allows to interrupt the trigger chain and not
+  // do operations not required for the prompted gulp target.
+  const f = (...args) => {
+    const fns = ctx.getDependents()
+      .filter(task => task.isWatched)
+      .map(task => task.triggeredFn);
+
+    const fn = fns.length ? gulp.series(ctx.fn, gulp.parallel(...fns)) : ctx.fn;
+
+    overrideOnFirstCall(fn, ctx, 'triggered');
+
+    ctx.streamer.setMode('default');
+
+    return fn(...args);
+  };
+
+  return f;
+};
+
+export const makeExecFn = ctx => {
   // Base action for task preceded by all required actions
   // For this, implicit and explicit deps are the same
   const f = (...args) => {
@@ -104,13 +142,15 @@ const makeExecFn = ctx => {
 
     overrideOnFirstCall(fn, ctx, 'exec');
 
+    ctx.streamer.setMode('newer');
+
     return fn(...args);
   };
 
   return f;
 };
 
-const makeWatchFn = ctx => {
+export const makeWatchFn = ctx => {
   // Watching to trigger base action.
   // Also setting watch on deps, implicit and explicit alike.
   // Note: Implicit will trigger back the task (say source files have changed)
@@ -136,5 +176,3 @@ const makeWatchFn = ctx => {
 
   return f;
 };
-
-export {setFnProperties, makeFn, makeTriggerFn, makeExecFn, makeWatchFn};

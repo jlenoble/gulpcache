@@ -2,10 +2,15 @@ import testGulpProcess, {touchFile, isFound, compareTranspiled, snapshot,
   isNewer, isUntouched} from 'test-gulp-process';
 
 describe('Testing GulpTask', function () {
+  const refFiles = [
+    'src/**/*.js',
+    'tmp/src/**/*.js',
+    'build/tmp/src/**/*.js',
+  ];
+
   it(`Testing a task depending implicitly on another`, testGulpProcess({
     sources: ['src/**/*.js'],
     gulpfile: 'test/gulpfiles/exec-autodep.js',
-    debug: true,
 
     messages: [
       `Starting 'default'...`,
@@ -24,7 +29,6 @@ describe('Testing GulpTask', function () {
   it(`Testing a tdd task depending implicitly on another`, testGulpProcess({
     sources: ['src/**/*.js'],
     gulpfile: 'test/gulpfiles/tdd-autodep.js',
-    debug: true,
 
     messages: [
       `Starting 'default'...`,
@@ -35,8 +39,7 @@ describe('Testing GulpTask', function () {
       `Finished 'transpile' after`,
       `Finished 'exec:transpile' after`,
       [`Finished 'default' after`,
-        snapshot('build/tmp/src/**/*.js'),
-        snapshot('tmp/src/**/*.js'),
+        snapshot(refFiles),
         touchFile('tmp/src/gulptask.js')],
       `Starting 'trigger:transpile'...`,
       [`Finished 'trigger:transpile' after`,
@@ -45,8 +48,7 @@ describe('Testing GulpTask', function () {
         isUntouched('src/**/*.js'),
         isUntouched(['tmp/src/**/*.js', '!tmp/src/gulptask.js']),
         isUntouched(['build/tmp/src/**/*.js', '!build/tmp/src/gulptask.js']),
-        snapshot('build/tmp/src/**/*.js'),
-        snapshot('tmp/src/**/*.js'),
+        snapshot(refFiles),
         touchFile('src/gulptask.js')],
       `Starting 'trigger:copy'...`,
       `Finished 'trigger:copy' after`,

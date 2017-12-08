@@ -1,9 +1,11 @@
 import GulpStream, {makeOptions} from 'gulpstream';
+import PolyPipe from 'polypipe';
 import {rebaseGlob} from 'polypath';
-import {setFnProperties, makeFn, makeTriggerFn, makeExecFn, makeWatchFn}
-  from './function-factories';
+import newer from 'gulp-newer';
+import {setFnProperties, makeFn, makeTriggerFn, makeTriggeredFn, makeExecFn,
+  makeWatchFn} from './function-factories';
 
-const getName = args => {
+export const getName = args => {
   let name;
 
   args.some(arg => {
@@ -59,12 +61,23 @@ const getDependsOn = args => {
 
 const makeStreamer = args => {
   const {glob, pipe, dest} = makeOptions(args);
+
+  if (!dest) {
+    return new GulpStream(
+      ['default', glob, pipe]
+    );
+  }
+
+  const newerPipe = pipe ? pipe.prepipe([newer, dest.destination]) :
+    new PolyPipe([newer, dest.destination]);
+
   return new GulpStream(
     ['default', glob, pipe, dest],
+    ['newer', glob, newerPipe, dest]
   );
 };
 
-const setMainProperties = (ctx, args) => {
+export const setMainProperties = (ctx, args) => {
   Object.defineProperties(ctx, {
     name: {
       value: getName(args),
@@ -84,7 +97,7 @@ const setMainProperties = (ctx, args) => {
   });
 };
 
-const mixInStreamerProperties = ctx => {
+export const mixInStreamerProperties = ctx => {
   Object.defineProperties(ctx, {
     glob: {
       value: ctx.streamer.glob,
@@ -105,7 +118,7 @@ const mixInStreamerProperties = ctx => {
   });
 };
 
-const setFunctionProperties = (ctx, args) => {
+export const setFunctionProperties = (ctx, args) => {
   // Factories rely on ctx's main properties to already be defined
   Object.defineProperties(ctx, {
     fn: {
@@ -119,6 +132,15 @@ const setFunctionProperties = (ctx, args) => {
 
     triggerFn: {
       value: (...args) => ctx._triggerFn(...args),
+    },
+
+    _triggeredFn: { // overridden on first call and set to non configurable
+      value: makeTriggeredFn(ctx),
+      configurable: true,
+    },
+
+    triggeredFn: {
+      value: (...args) => ctx._triggeredFn(...args),
     },
 
     _execFn: { // overridden on first call and set to non configurable
@@ -136,8 +158,6 @@ const setFunctionProperties = (ctx, args) => {
   });
 
   setFnProperties(ctx.triggerFn, ctx, 'trigger');
+  setFnProperties(ctx.triggeredFn, ctx, 'triggered');
   setFnProperties(ctx.execFn, ctx, 'exec');
 };
-
-export {getName, setMainProperties, mixInStreamerProperties,
-  setFunctionProperties};
