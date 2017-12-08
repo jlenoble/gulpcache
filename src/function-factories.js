@@ -42,10 +42,11 @@ export const setFnProperties = (fn, ctx, stem) => {
 const overrideOnFirstCall = (fn, ctx, stem) => {
   // Prevents from looking for deps and recreating fn on each call
   // triggerFn wraps _triggerFn and execFn wraps _execFn
-  const mode = stem === 'triggered' ? 'default' : 'newer';
+  const filterFiles = stem === 'triggered' ?
+    'passAllFiles' : 'passNewerFilesOnly';
 
   const f = (...args) => {
-    ctx.streamer.setMode(mode);
+    ctx[filterFiles]();
     return fn(...args);
   };
 
@@ -70,15 +71,9 @@ export const makeFn = (args, ctx) => {
 
   if (!fn) {
     if (ctx.dest) {
-      fn = () => {
-        const options = {read: true, mode: ctx.streamer.mode};
-        return ctx.streamer.dest(options).isReady();
-      };
+      fn = () => ctx.streamer.dest(ctx.getOptions()).isReady();
     } else {
-      fn = () => {
-        const options = {read: true, mode: ctx.streamer.mode};
-        return ctx.streamer.stream(options);
-      };
+      fn = () => ctx.streamer.stream(ctx.getOptions());
     }
   }
 
@@ -101,7 +96,7 @@ export const makeTriggerFn = ctx => {
 
     overrideOnFirstCall(fn, ctx, 'trigger');
 
-    ctx.streamer.setMode('newer');
+    ctx.passNewerFilesOnly();
 
     return fn(...args);
   };
@@ -122,7 +117,7 @@ export const makeTriggeredFn = ctx => {
 
     overrideOnFirstCall(fn, ctx, 'triggered');
 
-    ctx.streamer.setMode('default');
+    ctx.passAllFiles();
 
     return fn(...args);
   };
@@ -142,7 +137,7 @@ export const makeExecFn = ctx => {
 
     overrideOnFirstCall(fn, ctx, 'exec');
 
-    ctx.streamer.setMode('newer');
+    ctx.passNewerFilesOnly();
 
     return fn(...args);
   };

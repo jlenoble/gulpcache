@@ -21,6 +21,21 @@ export class SimpleGulpTask {
     gulp.task(`tdd:${this.name}`, gulp.series(this.execFn, this.watchFn));
   }
 
+  passAllFiles () {
+    this.streamer.setMode('default');
+  }
+
+  passNewerFilesOnly () {
+    this.streamer.setMode('newer');
+  }
+
+  getOptions () {
+    return {
+      read: true,
+      mode: this.streamer.mode,
+    };
+  }
+
   getDependencies () {
     return dependencies.getDependencies(this);
   }
