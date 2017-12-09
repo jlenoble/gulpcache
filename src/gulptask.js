@@ -1,17 +1,16 @@
 import {SingletonFactory} from 'singletons';
 import gulp from 'gulp';
 import DependencyMap from './dependency-map';
-import {getName, setMainProperties, mixInStreamerProperties,
+import {getName, setConfig, setMainProperties, mixInStreamerProperties,
   setFunctionProperties} from './properties';
 
 const dependencies = new DependencyMap();
 
 export class SimpleGulpTask {
   constructor (...args) {
+    setConfig(this, args);
     setMainProperties(this, args);
-
     mixInStreamerProperties(this);
-
     setFunctionProperties(this, args);
 
     dependencies.register(this);

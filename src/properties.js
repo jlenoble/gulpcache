@@ -25,37 +25,31 @@ export const getName = args => {
   return name;
 };
 
-const getDescription = args => {
-  let description;
+const getter = name => args => {
+  let value;
 
   args.some(arg => {
-    if (arg.description) {
-      description = arg.description;
+    if (arg[name]) {
+      value = arg[name];
       return true;
     }
 
     return false;
   });
 
-  return description;
+  return value;
 };
 
+const getDebug = getter('debug');
+const _getDependsOn = getter('dependsOn');
+const getDescription = getter('description');
+const getSourcemaps = getter('sourcemaps');
+
 const getDependsOn = args => {
-  let dependsOn;
-
-  args.some(arg => {
-    if (arg.dependsOn) {
-      dependsOn = arg.dependsOn;
-      return true;
-    }
-
-    return false;
-  });
-
+  const dependsOn = _getDependsOn(args);
   if (!dependsOn) {
     return [];
   }
-
   return Array.isArray(dependsOn) ? dependsOn : [dependsOn];
 };
 
@@ -75,6 +69,18 @@ const makeStreamer = args => {
     ['default', glob, pipe, dest],
     ['newer', glob, newerPipe, dest]
   );
+};
+
+export const setConfig = (ctx, args) => {
+  Object.defineProperties(ctx, {
+    debug: {
+      value: getDebug(args),
+    },
+
+    sourcemaps: {
+      value: getSourcemaps(args),
+    },
+  });
 };
 
 export const setMainProperties = (ctx, args) => {
