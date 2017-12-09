@@ -2,6 +2,7 @@ import GulpStream, {makeOptions} from 'gulpstream';
 import PolyPipe from 'polypipe';
 import {rebaseGlob} from 'polypath';
 import newer from 'gulp-newer';
+import debug from 'gulp-debug';
 import {setFnProperties, makeFn, makeTriggerFn, makeTriggeredFn, makeExecFn,
   makeWatchFn} from './function-factories';
 
@@ -56,21 +57,50 @@ const getDependsOn = args => {
   return Array.isArray(dependsOn) ? dependsOn : [dependsOn];
 };
 
-const makeStreamer = args => {
+const makeStreamer = (ctx, args) => {
   const {glob, pipe, dest} = makeOptions(args);
 
-  if (!dest) {
+  const debugPipe = new PolyPipe(debug);
+
+  let pipes = pipe;
+
+  if (ctx.debugDest) {
+    pipes = pipes ? pipes.pipe(debugPipe) : debugPipe;
+  }
+
+  let newerPipes = dest && new PolyPipe([newer, dest.destination]);
+
+  if (newerPipes) {
+    if (ctx.debugNewer) {
+      switch (pipes) {
+      case debugPipe:
+        break;
+
+      default:
+        newerPipes = newerPipes.pipe(debugPipe);
+      }
+    }
+    if (pipes) {
+      newerPipes = newerPipes.pipe(pipes);
+    }
+    if (ctx.debugSrc) {
+      newerPipes = newerPipes.prepipe(debugPipe);
+    }
+  }
+
+  if (ctx.debugSrc && pipes !== debugPipe) {
+    pipes = pipes ? pipes.prepipe(debugPipe) : debugPipe;
+  }
+
+  if (!newerPipes) {
     return new GulpStream(
-      ['default', glob, pipe]
+      ['default', glob, pipes]
     );
   }
 
-  const newerPipe = pipe ? pipe.prepipe([newer, dest.destination]) :
-    new PolyPipe([newer, dest.destination]);
-
   return new GulpStream(
-    ['default', glob, pipe, dest],
-    ['newer', glob, newerPipe, dest]
+    ['default', glob, pipes, dest],
+    ['newer', glob, newerPipes, dest]
   );
 };
 
@@ -112,7 +142,7 @@ export const setMainProperties = (ctx, args) => {
     },
 
     streamer: {
-      value: makeStreamer(args),
+      value: makeStreamer(ctx, args),
     },
   });
 };
