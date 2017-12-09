@@ -43,6 +43,7 @@ const getter = name => args => {
 
 const getDebug = getter('debug');
 const getDebugDest = getter('debugDest');
+const getDebugMinimal = getter('debugMinimal');
 const getDebugNewer = getter('debugNewer');
 const getDebugSrc = getter('debugSrc');
 const _getDependsOn = getter('dependsOn');
@@ -57,40 +58,72 @@ const getDependsOn = args => {
   return Array.isArray(dependsOn) ? dependsOn : [dependsOn];
 };
 
+const wrapWithDebugPipes = (ctx, pipe, dest) => {
+  const flags = ctx.debugSrc + 2 * ctx.debugNewer + 4 * ctx.debugDest;
+
+  const debugSrcPipe = new PolyPipe([debug, {
+    title: `Task '${ctx.name}' (SRC):`,
+    minimal: ctx.debugMinimal,
+  }]);
+  const debugNewerPipe = new PolyPipe([debug, {
+    title: `Task '${ctx.name}' (NWR):`,
+    minimal: ctx.debugMinimal,
+  }]);
+  const debugDestPipe = new PolyPipe([debug, {
+    title: `Task '${ctx.name}' (DST):`,
+    minimal: ctx.debugMinimal,
+  }]);
+
+  let pipes;
+
+  switch (flags) {
+  case 1: case 3:
+    pipes = pipe ? pipe.prepipe(debugSrcPipe) : debugSrcPipe;
+    break;
+
+  case 4: case 6:
+    pipes = pipe ? pipe.pipe(debugDestPipe) : debugDestPipe;
+    break;
+
+  case 5: case 7:
+    pipes = pipe ? pipe.prepipe(debugSrcPipe).pipe(debugDestPipe) :
+      debugSrcPipe;
+  }
+
+  if (!dest) {
+    return {pipes};
+  }
+
+  let newerPipes = new PolyPipe([newer, dest.destination]);
+
+  if (ctx.debugSrc) {
+    newerPipes = newerPipes.prepipe(debugSrcPipe);
+  }
+
+  if (ctx.debugNewer) {
+    newerPipes = newerPipes.pipe(debugNewerPipe);
+  }
+
+  if (pipe) {
+    newerPipes = newerPipes.pipe(pipe);
+  }
+
+  switch (flags) {
+  case 6: case 7:
+    if (!pipe) {
+      break;
+    }
+  // FALL THROUGH
+  case 4: case 5:
+    newerPipes = newerPipes.pipe(debugDestPipe);
+  }
+
+  return {pipes, newerPipes};
+};
+
 const makeStreamer = (ctx, args) => {
   const {glob, pipe, dest} = makeOptions(args);
-
-  const debugPipe = new PolyPipe(debug);
-
-  let pipes = pipe;
-
-  if (ctx.debugDest) {
-    pipes = pipes ? pipes.pipe(debugPipe) : debugPipe;
-  }
-
-  let newerPipes = dest && new PolyPipe([newer, dest.destination]);
-
-  if (newerPipes) {
-    if (ctx.debugNewer) {
-      switch (pipes) {
-      case debugPipe:
-        break;
-
-      default:
-        newerPipes = newerPipes.pipe(debugPipe);
-      }
-    }
-    if (pipes) {
-      newerPipes = newerPipes.pipe(pipes);
-    }
-    if (ctx.debugSrc) {
-      newerPipes = newerPipes.prepipe(debugPipe);
-    }
-  }
-
-  if (ctx.debugSrc && pipes !== debugPipe) {
-    pipes = pipes ? pipes.prepipe(debugPipe) : debugPipe;
-  }
+  const {pipes, newerPipes} = wrapWithDebugPipes(ctx, pipe, dest);
 
   if (!newerPipes) {
     return new GulpStream(
@@ -106,6 +139,7 @@ const makeStreamer = (ctx, args) => {
 
 export const setConfig = (ctx, args) => {
   const debug = getDebug(args);
+  const minimal = getDebugMinimal(args);
 
   Object.defineProperties(ctx, {
     debug: {
@@ -113,6 +147,9 @@ export const setConfig = (ctx, args) => {
     },
     debugDest: {
       value: debug || getDebugDest(args),
+    },
+    debugMinimal: {
+      value: minimal !== undefined ? minimal : true,
     },
     debugNewer: {
       value: debug || getDebugNewer(args),
@@ -140,11 +177,9 @@ export const setMainProperties = (ctx, args) => {
     dependsOn: {
       value: getDependsOn(args),
     },
-
-    streamer: {
-      value: makeStreamer(ctx, args),
-    },
   });
+
+  Object.defineProperty(ctx, 'streamer', {value: makeStreamer(ctx, args)});
 };
 
 export const mixInStreamerProperties = ctx => {
