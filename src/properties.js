@@ -41,6 +41,9 @@ const getter = name => args => {
 };
 
 const getDebug = getter('debug');
+const getDebugDest = getter('debugDest');
+const getDebugNewer = getter('debugNewer');
+const getDebugSrc = getter('debugSrc');
 const _getDependsOn = getter('dependsOn');
 const getDescription = getter('description');
 const getSourcemaps = getter('sourcemaps');
@@ -72,9 +75,20 @@ const makeStreamer = args => {
 };
 
 export const setConfig = (ctx, args) => {
+  const debug = getDebug(args);
+
   Object.defineProperties(ctx, {
     debug: {
-      value: getDebug(args),
+      value: debug,
+    },
+    debugDest: {
+      value: debug || getDebugDest(args),
+    },
+    debugNewer: {
+      value: debug || getDebugNewer(args),
+    },
+    debugSrc: {
+      value: debug || getDebugSrc(args),
     },
 
     sourcemaps: {
