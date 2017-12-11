@@ -48,7 +48,7 @@
     "gulp-wrap": "*",
     "markdown-include": "*",
     "plumb-gulp": "*",
-    "test-gulp-process": "^0.3.5"
+    "test-gulp-process": "^0.4.1"
   },
   "peerDependencies": {}
 }
