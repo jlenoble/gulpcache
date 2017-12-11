@@ -154,17 +154,19 @@ export const makeWatchFn = ctx => {
   // explicit execution chain is handled at the level of triggerFn prop
   const f = () => {
     const watcher = gulp.watch(ctx.glob, ctx.triggerFn);
-    watcher.on('unlink', file => {
-      if (ctx.dest) {
-        return del(rebaseGlob(file, ctx.dest));
-      }
-    });
+    const ready = new Promise((resolve, reject) => watcher
+      .on('ready', resolve)
+      .on('error', reject));
+
+    if (ctx.dest) {
+      watcher.on('unlink', file => del(rebaseGlob(file, ctx.dest)));
+    }
 
     Object.defineProperty(ctx, 'isWatched', {value: true});
 
     return Promise.all(ctx.getDependencies()
       .filter(task => !task.isWatched)
-      .map(task => task.watchFn()));
+      .map(task => task.watchFn()).concat([ready]));
   };
 
   setFnProperties(f, ctx, 'watch');
