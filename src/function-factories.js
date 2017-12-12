@@ -1,5 +1,6 @@
 import gulp from 'gulp';
 import del from 'del';
+import {capture} from 'last-run';
 import {rebaseGlob} from 'polypath';
 
 export const setFnProperties = (fn, ctx, stem) => {
@@ -62,7 +63,17 @@ export const makeFn = (args, ctx) => {
 
   args.some(arg => {
     if (arg.fn) {
-      fn = (...args) => arg.fn(...args);
+      fn = (...args) => {
+        const res = arg.fn(...args);
+        if (Promise.resolve(res) === res) {
+          return res.then(() => {
+            capture(fn);
+            return res;
+          });
+        }
+        capture(fn);
+        return res;
+      };
       return true;
     }
 
@@ -71,9 +82,14 @@ export const makeFn = (args, ctx) => {
 
   if (!fn) {
     if (ctx.dest) {
-      fn = () => ctx.streamer.dest(ctx.getOptions()).isReady();
+      fn = () => ctx.streamer.dest(ctx.options).isReady().then(() => {
+        capture(fn);
+        return true;
+      });
     } else {
-      fn = () => ctx.streamer.stream(ctx.getOptions());
+      fn = () => ctx.streamer.stream(ctx.options).on('finish', () => {
+        capture(fn);
+      });
     }
   }
 

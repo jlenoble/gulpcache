@@ -13,6 +13,13 @@ export class SimpleGulpTask {
     mixInStreamerProperties(this);
     setFunctionProperties(this, args);
 
+    Object.defineProperty(this, 'options', {
+      value: {
+        read: true,
+        mode: 'default',
+      },
+    });
+
     dependencies.register(this);
 
     gulp.task(this.execFn);
@@ -21,18 +28,13 @@ export class SimpleGulpTask {
   }
 
   passAllFiles () {
-    this.streamer.setMode('default');
+    this.options.mode = 'default';
+    this.options.since = undefined;
   }
 
   passNewerFilesOnly () {
-    this.streamer.setMode('newer');
-  }
-
-  getOptions () {
-    return {
-      read: true,
-      mode: this.streamer.mode,
-    };
+    this.options.since = gulp.lastRun(this.fn);
+    this.options.mode = this.options.since ? 'default': 'newer';
   }
 
   getDependencies () {
