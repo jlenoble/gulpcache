@@ -65,14 +65,10 @@ export const makeFn = (args, ctx) => {
     if (arg.fn) {
       fn = (...args) => {
         const res = arg.fn(...args);
-        if (Promise.resolve(res) === res) {
-          return res.then(() => {
-            capture(fn);
-            return res;
-          });
-        }
-        capture(fn);
-        return res;
+        return Promise.resolve(res).then(res => {
+          capture(fn);
+          return res;
+        });
       };
       return true;
     }
