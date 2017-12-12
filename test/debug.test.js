@@ -5,7 +5,6 @@ describe('Testing GulpTask', function () {
     sources: ['src/**/*.js'],
     gulpfile: 'test/gulpfiles/exec-debug.js',
     task: ['default', 'default'],
-    debug: true,
 
     messages: [
       `Starting 'default'...`,
