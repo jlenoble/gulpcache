@@ -41,11 +41,13 @@ const getter = name => args => {
   return value;
 };
 
-const getDebug = getter('debug');
-const getDebugDest = getter('debugDest');
+const returnsBool = fn => args => !!fn(args);
+
+const getDebug = returnsBool(getter('debug'));
+const getDebugDest = returnsBool(getter('debugDest'));
 const getDebugMinimal = getter('debugMinimal');
-const getDebugNewer = getter('debugNewer');
-const getDebugSrc = getter('debugSrc');
+const getDebugNewer = returnsBool(getter('debugNewer'));
+const getDebugSrc = returnsBool(getter('debugSrc'));
 const _getDependsOn = getter('dependsOn');
 const getDescription = getter('description');
 const getSourcemaps = getter('sourcemaps');
@@ -88,6 +90,10 @@ const wrapWithDebugPipes = (ctx, pipe, dest) => {
   case 5: case 7:
     pipes = pipe ? pipe.prepipe(debugSrcPipe).pipe(debugDestPipe) :
       debugSrcPipe;
+    break;
+
+  default:
+    pipes = pipe;
   }
 
   if (!dest) {
