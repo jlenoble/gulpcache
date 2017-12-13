@@ -1,7 +1,7 @@
 {
   "name": "gulptask",
   "description": "Encapsulating Gulp tasks",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "keywords": [],
   "author": {
     "name": "Jason Lenoble",
