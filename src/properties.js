@@ -5,6 +5,7 @@ import newer from 'gulp-newer';
 import debug from 'gulp-debug';
 import {setFnProperties, makeFn, makeTriggerFn, makeTriggeredFn, makeExecFn,
   makeWatchFn} from './function-factories';
+import {getter} from './properties/helpers';
 
 export const getName = args => {
   let name;
@@ -26,31 +27,8 @@ export const getName = args => {
   return name;
 };
 
-const getter = name => args => {
-  let value;
-
-  args.some(arg => {
-    if (arg[name]) {
-      value = arg[name];
-      return true;
-    }
-
-    return false;
-  });
-
-  return value;
-};
-
-const returnsBool = fn => args => !!fn(args);
-
-const getDebug = returnsBool(getter('debug'));
-const getDebugDest = returnsBool(getter('debugDest'));
-const getDebugMinimal = getter('debugMinimal');
-const getDebugNewer = returnsBool(getter('debugNewer'));
-const getDebugSrc = returnsBool(getter('debugSrc'));
 const _getDependsOn = getter('dependsOn');
 const getDescription = getter('description');
-const getSourcemaps = getter('sourcemaps');
 
 const getDependsOn = args => {
   const dependsOn = _getDependsOn(args);
@@ -141,33 +119,6 @@ const makeStreamer = (ctx, args) => {
     ['default', glob, pipes, dest],
     ['newer', glob, newerPipes, dest]
   );
-};
-
-export const setConfig = (ctx, args) => {
-  const debug = getDebug(args);
-  const minimal = getDebugMinimal(args);
-
-  Object.defineProperties(ctx, {
-    debug: {
-      value: debug,
-    },
-    debugDest: {
-      value: debug || getDebugDest(args),
-    },
-    debugMinimal: {
-      value: minimal !== undefined ? minimal : true,
-    },
-    debugNewer: {
-      value: debug || getDebugNewer(args),
-    },
-    debugSrc: {
-      value: debug || getDebugSrc(args),
-    },
-
-    sourcemaps: {
-      value: getSourcemaps(args),
-    },
-  });
 };
 
 export const setMainProperties = (ctx, args) => {
