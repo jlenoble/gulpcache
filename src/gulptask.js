@@ -1,9 +1,9 @@
 import {SingletonFactory} from 'singletons';
 import gulp from 'gulp';
 import DependencyMap from './dependency-map';
-import {getName, setMainProperties,
-  setFunctionProperties} from './properties.js';
-import {setConfigProperties, setStreamerProperties} from './properties/index';
+import {getName, setMainProperties} from './properties.js';
+import {setConfigProperties, setStreamerProperties, setFunctionProperties}
+  from './properties/index';
 
 const dependencies = new DependencyMap();
 
