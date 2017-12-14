@@ -1,9 +1,9 @@
 import {SingletonFactory} from 'singletons';
 import gulp from 'gulp';
 import DependencyMap from './dependency-map';
-import {getName, setMainProperties, mixInStreamerProperties,
+import {getName, setMainProperties,
   setFunctionProperties} from './properties.js';
-import {setConfigProperties} from './properties/index';
+import {setConfigProperties, setStreamerProperties} from './properties/index';
 
 const dependencies = new DependencyMap();
 
@@ -11,7 +11,7 @@ export class SimpleGulpTask {
   constructor (...args) {
     setConfigProperties(this, args);
     setMainProperties(this, args);
-    mixInStreamerProperties(this);
+    setStreamerProperties(this, args);
     setFunctionProperties(this, args);
 
     Object.defineProperty(this, 'options', {
