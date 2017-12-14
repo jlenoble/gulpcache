@@ -1,6 +1,6 @@
 import GulpStream, {makeOptions} from 'gulpstream';
 import {rebaseGlob} from 'polypath';
-import {wrapWithDebugPipes} from './wrap-pipes';
+import {wrapWithDebugPipes} from './helpers';
 
 const makeStreamer = (ctx, args) => {
   const {glob, pipe, dest} = makeOptions(args);
