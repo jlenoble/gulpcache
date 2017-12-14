@@ -1,4 +1,4 @@
-import {getter} from './properties/helpers';
+import {getter} from './helpers';
 
 export const getName = args => {
   let name;
