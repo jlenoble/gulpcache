@@ -5,7 +5,7 @@ const getDebugDest = returnsBool(getter('debugDest'));
 const getDebugMinimal = getter('debugMinimal');
 const getDebugNewer = returnsBool(getter('debugNewer'));
 const getDebugSrc = returnsBool(getter('debugSrc'));
-const getSourcemaps = getter('sourcemaps');
+const getSourcemaps = returnsBool(getter('sourcemaps'));
 
 export const setConfigProperties = (ctx, args) => {
   const debug = getDebug(args);

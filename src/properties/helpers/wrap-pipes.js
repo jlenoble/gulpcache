@@ -1,6 +1,7 @@
 import PolyPipe from 'polypipe';
 import newer from 'gulp-newer';
 import debug from 'gulp-debug';
+import sourcemaps from 'gulp-sourcemaps';
 
 export const wrapWithDebugPipes = (ctx, pipe, dest) => {
   const flags = ctx.debugSrc + 2 * ctx.debugNewer + 4 * ctx.debugDest;
@@ -67,4 +68,12 @@ export const wrapWithDebugPipes = (ctx, pipe, dest) => {
   }
 
   return {pipes, newerPipes};
+};
+
+export const wrapWithSourcemapsPipes = (ctx, pipe) => {
+  return ctx.sourcemaps && pipe ? new PolyPipe(
+    sourcemaps.init,
+    pipe,
+    sourcemaps.write
+  ) : pipe;
 };

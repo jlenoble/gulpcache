@@ -1,10 +1,11 @@
 import GulpStream, {makeOptions} from 'gulpstream';
 import {rebaseGlob} from 'polypath';
-import {wrapWithDebugPipes} from './helpers';
+import {wrapWithDebugPipes, wrapWithSourcemapsPipes} from './helpers';
 
 const makeStreamer = (ctx, args) => {
   const {glob, pipe, dest} = makeOptions(args);
-  const {pipes, newerPipes} = wrapWithDebugPipes(ctx, pipe, dest);
+  const {pipes, newerPipes} = wrapWithDebugPipes(ctx, wrapWithSourcemapsPipes(
+    ctx, pipe), dest);
 
   if (!newerPipes) {
     return new GulpStream(
